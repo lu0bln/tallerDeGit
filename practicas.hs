@@ -273,7 +273,7 @@ menorDivisorHasta n i |mod n i == 0 = i
 esPrimo :: Integer -> Bool 
 esPrimo n | menorDivisor n == n = True
           | otherwise = False 
--- c) repensar por definicion de que no compartan ningun divisor -> son coprimos (falla en ej 10 15)
+-- c) 
 sonCoprimos :: Integer -> Integer -> Bool
 sonCoprimos n m | n /= m && esPrimo n && esPrimo m = True
                 | (mod n (menorDivisor m) == 0) || (mod m (menorDivisor n) == 0) = False   
@@ -282,71 +282,136 @@ sonCoprimos n m | n /= m && esPrimo n && esPrimo m = True
 nEsimoPrimo :: Integer -> Integer 
 nEsimoPrimo n | n == 1 = 2 
 
--- 17 res es true <-> n es algun valor de la secuencia de Fibonacci 
+-- 17) res es true <-> n es algun valor de la secuencia de Fibonacci 
 -- idea : si un n es algun valor de la secuencia de fibonacci entonces fibonacci n = n, sino la
 -- fibonacci n-1 = n, ... , fibonacci 0 = n sino False 
 esFibonacci :: Integer -> Bool
 esFibonacci n | fibonacci n == n = True
               | otherwise = fibonacci (n-1) == n 
    
--- PRACTICA V (LISTAS)
--- 1 Dada una lista devuelva su cantidad de elementos
---1
+--                               PRACTICA V (LISTAS)
+-- EJERCICIO 1 
+--1)Dada una lista devuelva su cantidad de elementos
 longitud :: (Eq t) => [t] -> Integer
 longitud [] = 0
 longitud [_] = 1
 longitud (x:xs) = 1 + longitud xs 
---2
+--2)
 ultimo :: (Eq t) => [t] -> t 
 ultimo [x] = x
 ultimo (x:xs) = head [ultimo xs]  
---3 'quita el ultimo elemento de la lista' 
+--3) 'quita el ultimo elemento de la lista' 
 {-principio :: (Eq t) => [t] -> [t]
 principio xs | xs == x = xs     
 -}
 principio :: (Eq t) => [t] -> [t]
 principio [x] = []
 principio (x:xs) = [x] ++ principio xs
---4
+--4)
 reverso :: (Eq t) => [t] -> [t]
 reverso [] = []
 reverso [x] = [x]
 reverso xs = [ultimo xs] ++ reverso (principio xs)
--- 2 
---1 
+-- EJERCICIO 2 
+--1) 
 pertenece :: (Eq t) => t -> [t] -> Bool
 pertenece e [] = False
 pertenece e (a:b) = e == a || pertenece e b  
---2 
+--2) 
 todosIguales :: (Eq t) => [t] -> Bool
 todosIguales xs | longitud xs <= 1 = True
                 | head xs /= head (tail xs) = False        
                 | otherwise = todosIguales (tail xs)  
---3
+--3)
 todosDistintos :: (Eq t) => [t] -> Bool
 todosDistintos xs | longitud xs <= 1 = True
-                  | head xs == head (tail xs) || head xs == ultimo xs = False
+                  | pertenece (head xs) (tail xs)  = False
                   | otherwise = todosDistintos (tail xs)
---4
+--4)
 hayRepetidos :: (Eq t) => [t] -> Bool 
 hayRepetidos xs | not (todosDistintos xs) = True
                 | otherwise = False 
---5 en la especificaion el requiere deberia ser que al menos contenga un elemento 
+--5) en la especificaion el requiere deberia ser que al menos contenga un elemento 
 quitar :: (Eq t) => t -> [t] -> [t]
 quitar x xs | pertenece x xs == False = xs 
             | head xs == x = tail xs 
             | otherwise = [head xs] ++ (quitar x (tail xs))
---6
+--6)
 quitarTodos :: (Eq t) => t -> [t] -> [t]
 quitarTodos x xs | pertenece x xs == False = xs 
                  | otherwise = quitarTodos x (quitar x xs) 
---7 aux: dada una lista me devuelva el elemento repetido (fijarse que el primer elemento no sea igual
--- a ningun otro)
-{- repetidos :: (Eq t) => [t] -> t
-repetido xs | xs == [] = []
-            | head xs == head (tail xs) = head xs
-   -}         
-eliminarRepetidos :: (Eq t) => [t] -> [t] 
-eliminarRepetidos xs | hayRepetidos xs == False = xs  
-                     | (head xs == head (tail xs)) && (head xs == head (quitar (head (tail xs)) (tail xs))) = [head xs] ++ eliminarRepetidos (tail xs)
-                     
+--7) 
+eliminarRepetidos :: (Eq t) => [t] -> [t]
+eliminarRepetidos xs | hayRepetidos xs == False = xs
+                     | otherwise = [head xs] ++ eliminarRepetidos (quitarTodos (head xs) xs) 
+--8) dadas dos listas devuelve true <-> ambas listas contienen los mismosElementos sin tener en cuenta
+-- repeticiones. NOTA: lo que hace la funcion es que evalua los elementos de una lista en otra en la cual si el primer elemento de la primer lista pertenece a la segunda
+-- lista entonces hago recursion pero sacando a ese elemento de ambas listas ya que como pertenece a ambas no la necesito, asi hasta llegar a mi caso base que o bien al
+-- sacar elementos me termina quedando ambas listas vacias lo cual afirma que tenian los mismos elementos o bien donde quede una lista vacia y en otra algun/os elementos
+-- lo cual afirma que hay un elemento de mas en una lista, osea no tenian los mismos elementos.
+mismosElementos :: (Eq t) => [t] -> [t] -> Bool
+mismosElementos [] [] = True
+mismosElementos [] ys = False 
+mismosElementos xs ys | pertenece (head xs) ys == True = mismosElementos (quitarTodos (head xs) xs) (quitarTodos (head xs) ys)
+                      | otherwise = False
+--9) 
+capicua :: (Eq t) => [t] -> Bool
+capicua xs = reverso xs == xs
+
+ -- EJERCICIO 3 
+ --1) sumar todos los elementos enteros de una lista
+sumatoria :: [Integer] -> Integer
+sumatoria xs | xs == [] = 0 
+             | otherwise = head xs + sumatoria (tail xs)
+--2) multiplicar todos los elementos enteros de una lista
+productoria :: [Integer] -> Integer
+productoria xs | xs == [] = 1
+               | otherwise = head xs * productoria (tail xs)
+--3) devolver el maximo elemento (el numero mas grande) de una lista de numeros enteros
+maximo :: [Integer] -> Integer
+maximo xs | longitud (eliminarRepetidos xs) == 1 = head xs
+          | head xs >= head (tail xs) = maximo (quitarTodos (head (tail xs)) xs) 
+          | otherwise = maximo (quitarTodos (head xs) xs)
+--4) 
+sumarN :: Integer -> [Integer] -> [Integer]
+sumarN n [] = []
+sumarN n xs | longitud xs == 1 = [n + (head xs)]
+            | otherwise = [n + (head xs)] ++ sumarN n (tail xs)
+--5)
+sumarElPrimero :: [Integer] -> [Integer] 
+sumarElPrimero xs = sumarN (head xs) xs
+--6)
+sumarElUltimo :: [Integer] -> [Integer]
+sumarElUltimo xs = sumarN (head (reverso xs)) xs
+--7)
+pares :: [Integer] -> [Integer] 
+pares [] = []
+pares xs | mod (head xs) 2 == 0 = [head xs] ++ pares (tail xs)
+         | otherwise = [] ++ pares (tail xs)
+--8) tengo la funcion esMultiploDe n m (?n esMultiploDe m ?) q me delveulve true si lo es y viceversa
+multiplosDeN :: Integer -> [Integer] -> [Integer]
+multiplosDeN n [] = []
+multiplosDeN n xs | esMultiploDe (head xs) n == True = [head xs] ++ multiplosDeN n (tail xs)
+                  | otherwise = [] ++ multiplosDeN n (tail xs)
+--9) ordenar los elementos de una lista en forma CRECIENTE (Menor a Mayor). ordenarAux = DECRECIENTE
+-- NOTA : si no hacia un auxiliar y mandaba reverso en la recursion de ordenarAux no daria lo mismo.
+ordenarAux :: [Integer] -> [Integer]
+ordenarAux [] = []
+ordenarAux xs = [maximo xs] ++ ordenarAux (quitar (maximo xs) xs) 
+ordenar :: [Integer] -> [Integer]
+ordenar xs = reverso (ordenarAux xs)
+-- fijarse de la p4 desde n esimo primo hasta ej 21
+-- 4
+--a) Lo que estaba fallando era que en la 2da condicion al haber dos ' ' igual solo me devolvia una
+-- y la sumaba a la nueva lista lo cual esta demas pues cuando hay 2 ' ' lo q tengo q hacer es recursion
+-- sin sumar ninguna ' ', pues por la 3ra condicion cuando solo haya '' y '_' entonces ya se agrega el 
+-- unico ' '. 
+sacarBlancosRepetidos :: [Char] -> [Char]
+sacarBlancosRepetidos [] = []
+sacarBlancosRepetidos xs | head xs == ' ' &&  head (tail xs) == ' ' = sacarBlancosRepetidos (tail xs)
+                         | otherwise = [head xs] ++ sacarBlancosRepetidos (tail xs)
+--b) dada una lista de caracteres devuelva la cantidad de palabras que tiene 
+contarPalabras :: [Char] -> Integer s
+
+
+
