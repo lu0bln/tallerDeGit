@@ -408,10 +408,38 @@ ordenar xs = reverso (ordenarAux xs)
 -- unico ' '. 
 sacarBlancosRepetidos :: [Char] -> [Char]
 sacarBlancosRepetidos [] = []
+sacarBlancosRepetidos [letra] = [letra]
 sacarBlancosRepetidos xs | head xs == ' ' &&  head (tail xs) == ' ' = sacarBlancosRepetidos (tail xs)
                          | otherwise = [head xs] ++ sacarBlancosRepetidos (tail xs)
---b) dada una lista de caracteres devuelva la cantidad de palabras que tiene 
-contarPalabras :: [Char] -> Integer s
+
+--b) dada una lista de caracteres devuelva la cantidad de PALABRAS que tiene (lo que hice cuenta la cantidad de letras o caracteres)
+contarPalabras :: [Char] -> Integer 
+contarPalabras [] = 0
+contarPalabras [' '] = 0
+contarPalabras [letra] = 1
+contarPalabras xs = contarPalabras [head xs] + contarPalabras(tail xs)
+
+--c) dada una lista arma una nueva lista con las PALABRAS de la lista orginal
+-- NOTA: necesite sacarEspacioFin y el de inicio pues el sacarBlancosRepetidos solo me eliminaba las repeticiones de mas de 2 ' ' y no contemplaba los casos donde el ' '
+-- aparecia en el primer y/o ultimo elemento
+
+sacarEspacioInicioFin :: [Char] -> [Char]
+sacarEspacioInicioFin xs | head xs == ' ' = sacarEspacioInicioFin (tail xs)
+                         | head (reverso xs) == ' ' = reverso (tail (reverso xs))
+                         | otherwise = xs 
+primerPalabra :: [Char] -> [Char]
+primerPalabra [] = []
+primerPalabra xs | head xs == ' ' = []
+                 | otherwise = [head xs] ++ primerPalabra (tail xs)  
+
+quitarPrimerPalabra :: [Char] -> [Char] 
+quitarPrimerPalabra [] = []
+quitarPrimerPalabra xs | head (sacarEspacioInicioFin (sacarBlancosRepetidos xs)) == ' ' = tail xs 
+                       | otherwise = quitarPrimerPalabra (tail xs)             
+
+palabras :: [Char] -> [[Char]]
+palabras [] = []
+palabras xs = [primerPalabra (sacarEspacioInicioFin (sacarBlancosRepetidos xs))] ++ palabras (quitarPrimerPalabra xs)
 
 
 
